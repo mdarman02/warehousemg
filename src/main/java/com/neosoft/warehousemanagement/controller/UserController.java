@@ -1,7 +1,9 @@
 package com.neosoft.warehousemanagement.controller;
 
 import com.neosoft.warehousemanagement.dto.LoginDto;
+import com.neosoft.warehousemanagement.dto.TokenResponseDto;
 import com.neosoft.warehousemanagement.dto.UserDto;
+import com.neosoft.warehousemanagement.entity.UserEntity;
 import com.neosoft.warehousemanagement.service.UserService;
 import jakarta.validation.Valid;
 
@@ -23,15 +25,24 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> addUser(@Valid @RequestBody UserDto userDto){
-        userService.addUser(userDto);
 
-        return new ResponseEntity<>("Successfully",HttpStatus.OK);
+        UserEntity user=userService.addUser(userDto);
+        if(user!=null) {
+            return new ResponseEntity<>("Registration is successfully", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("something went error",HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginDto loginDto){
-        String token=userService.login(loginDto);
-        return new ResponseEntity<>(token,HttpStatus.OK);
+    public ResponseEntity<Object> login(@Valid @RequestBody LoginDto loginDto){
+        String token =userService.login(loginDto);
+        if(token!=null){
+            TokenResponseDto tokenResponseDto=new TokenResponseDto();
+            tokenResponseDto.setToken(token);
+            return new ResponseEntity<>(tokenResponseDto,HttpStatus.OK);
+        }
+        return new ResponseEntity<>("ID/Password is wrong",HttpStatus.UNAUTHORIZED);
     }
+
 
 }
