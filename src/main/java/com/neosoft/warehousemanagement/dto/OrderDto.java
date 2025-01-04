@@ -1,31 +1,15 @@
-package com.neosoft.warehousemanagement.entity;
+package com.neosoft.warehousemanagement.dto;
 
-import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Entity
-@Table(name = "orders")
-public class Order {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private BigDecimal totalAmount;
-    private String status;
-    private String notes;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderItem> items;
-
-
-    // Getters and Setters
+@AllArgsConstructor
+@NoArgsConstructor
+public class OrderDto {
     public Long getId() {
         return id;
     }
@@ -66,11 +50,18 @@ public class Order {
         this.createdAt = createdAt;
     }
 
-    public List<OrderItem> getItems() {
+    public List<OrderItemDtO> getItems() {
         return items;
     }
 
-    public void setItems(List<OrderItem> items) {
+    public void setItems(List<OrderItemDtO> items) {
         this.items = items;
     }
+
+    private Long id;
+    private BigDecimal totalAmount;
+    private String status;
+    private String notes;
+    private LocalDateTime createdAt;
+    private List<OrderItemDtO> items;
 }

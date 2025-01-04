@@ -1,84 +1,117 @@
 package com.neosoft.warehousemanagement.service;
+import com.neosoft.warehousemanagement.dto.OrderDto;
+import com.neosoft.warehousemanagement.dto.OrderItemDtO;
 import com.neosoft.warehousemanagement.entity.Order;
 import com.neosoft.warehousemanagement.entity.OrderItem;
 import com.neosoft.warehousemanagement.entity.Product;
 import com.neosoft.warehousemanagement.entity.StockMovement;
-import com.neosoft.warehousemanagement.exception.InsufficientStockException;
 import com.neosoft.warehousemanagement.repository.OrderItemRepository;
 import com.neosoft.warehousemanagement.repository.OrderRepository;
 import com.neosoft.warehousemanagement.repository.ProductRepository;
 import com.neosoft.warehousemanagement.repository.StockMovementRepository;
-import com.neosoft.warehousemanagement.request.OrderRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
-
-    @Autowired
     private ProductRepository productRepository;
 
-    @Autowired
     private OrderRepository orderRepository;
 
-    @Autowired
     private OrderItemRepository orderItemRepository;
 
-    @Autowired
     private StockMovementRepository stockMovementRepository;
 
-    @Override
+    public OrderServiceImpl(ProductRepository productRepository, OrderRepository orderRepository,
+                            OrderItemRepository orderItemRepository,
+                            StockMovementRepository stockMovementRepository) {
+        this.productRepository = productRepository;
+        this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.stockMovementRepository = stockMovementRepository;
+    }
+
+
+
     @Transactional
-    public Order createOrder(OrderRequest request) {
+    @Override
+    public Order createOrder(OrderDto request) {
         // Step 1: Check stock availability
-        for (OrderItem item : request.getItems()) {
+        for (OrderItemDtO item : request.getItems()) {
             Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
             // Check if the current stock is sufficient
             if (product.getCurrentStock() < item.getQuantity()) {
-                throw new InsufficientStockException("Not enough stock for product: " + product.getName());
+                throw new RuntimeException("Not enough stock for product: " + product.getName());
             }
         }
 
         // Step 2: Create order
         Order order = new Order();
+        order.setId(request.getId());
         order.setStatus("PENDING");
         order.setTotalAmount(calculateTotalAmount(request));  // Calculate the total amount
         order.setCreatedAt(LocalDateTime.now());
         order.setNotes(request.getNotes());
 
         // Save the order (but not the items yet)
-        order = orderRepository.save(order);
+        Order savedorder = orderRepository.save(order);
 
         // Step 3: Save order items
-        for (OrderItem item : request.getItems()) {
+        for (OrderItemDtO item : request.getItems()) {
             Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            item.setOrder(order);
-            item.setUnitPrice(product.getPrice());  // Assuming the product price is stored in product table
-            orderItemRepository.save(item);
+            Order order1 = orderRepository.findById(savedorder.getId())
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+
+            // Create a new OrderItem entity and set its properties
+            OrderItem orderItem = new OrderItem();
+            orderItem.setId(item.getId());  // If the ID is already provided, you can set it
+            orderItem.setOrder(order1);         // Set the Order entity
+            orderItem.setProduct(product);     // Set the Product entity
+            orderItem.setQuantity(item.getQuantity()); // Set quantity
+            orderItem.setUnitPrice(item.getUnitPrice()); // Set unit price
+
+            // Save the OrderItem (assuming you have an orderItemRepository)
+            orderItemRepository.save(orderItem);
+
         }
 
         // Step 4: Reduce the stock
-        for (OrderItem item : request.getItems()) {
+        for (OrderItemDtO item : request.getItems()) {
             removeStock(item.getProductId(), item.getQuantity(), "SALE");
         }
 
+
         // Step 5: Return the created order
-        return order;
+        return savedorder;
     }
 
-    private BigDecimal calculateTotalAmount(OrderRequest request) {
+    @Override
+    public Page<Order> getOrders(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return orderRepository.findAll(pageable);
+    }
+
+    @Override
+    public Optional<Order> getOrderById(Long id) {
+        return orderRepository.findById(id);
+    }
+
+    private BigDecimal calculateTotalAmount(OrderDto request) {
         BigDecimal totalAmount = BigDecimal.ZERO;
-        for (OrderItem item : request.getItems()) {
+        for (OrderItemDtO item : request.getItems()) {
             Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
             totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
         }
@@ -88,10 +121,10 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void removeStock(Long productId, int quantity, String reason) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
         if (product.getCurrentStock() < quantity) {
-            throw new InsufficientStockException("Not enough stock to complete the sale.");
+            throw new RuntimeException("Not enough stock to complete the sale.");
         }
 
         product.setCurrentStock(product.getCurrentStock() - quantity); // Decrease stock by quantity
@@ -107,4 +140,5 @@ public class OrderServiceImpl implements OrderService {
         productRepository.save(product);  // Save the updated product with reduced stock
     }
 }
+
 
