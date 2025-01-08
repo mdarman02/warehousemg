@@ -9,6 +9,8 @@ import com.neosoft.warehousemanagement.repository.OrderItemRepository;
 import com.neosoft.warehousemanagement.repository.OrderRepository;
 import com.neosoft.warehousemanagement.repository.ProductRepository;
 import com.neosoft.warehousemanagement.repository.StockMovementRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,8 @@ import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     private ProductRepository productRepository;
 
     private OrderRepository orderRepository;

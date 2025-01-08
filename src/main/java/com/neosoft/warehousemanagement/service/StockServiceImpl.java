@@ -78,6 +78,32 @@ public class StockServiceImpl implements StockService {
             productRepository.save(product);
         }
 
+    @Override
+    @Transactional
+    public void reduceStock(Long productId, int quantity, String reason) {
+        // Fetch the product from the repository
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        // Ensure current stock is not null before updating
+        int currentStock = product.getCurrentStock() != null ? product.getCurrentStock() : 0;
+
+        // Create a stock movement record for adding stock (IN movement)
+        StockMovement movement = new StockMovement();
+        movement.setProduct(product);
+        movement.setQuantity(quantity);
+        movement.setReason(reason);
+        movement.setMovementType("OUT");
+
+        // Save the stock movement (record the "IN" movement)
+        stockMovementRepository.save(movement);
+
+        // Update the product's current stock
+        product.setCurrentStock(product.getCurrentStock() - quantity);
+
+        // Save the updated product with the new stock level
+        productRepository.save(product);
+    }
+
 
 //    @Transactional
 //    public void updateStock(Long productId, int quantity, String reason, String movementType) {
