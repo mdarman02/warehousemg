@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -95,5 +96,11 @@ public class ProductController {
         logger.info("Fetching total stock value");
         double totalStockValue = productService.getTotalStockValue();
         return ResponseEntity.ok(totalStockValue);
+    }
+
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<Product>> getLowStockProducts() {
+        List<Product> lowStockProducts = productService.getLowStockProducts();
+        return ResponseEntity.ok(lowStockProducts);
     }
 }

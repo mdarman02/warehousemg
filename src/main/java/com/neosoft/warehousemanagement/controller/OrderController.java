@@ -37,8 +37,12 @@ public class OrderController {
 
     // Get all orders with pagination
     @GetMapping
-    public ResponseEntity<Page<Order>> getOrders(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "0") int size) {
+    public ResponseEntity<Page<Order>> getOrders(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         logger.info("Fetching order - page: {}, size: {}",page,size);
+        if (page < 0 || size <= 0) {
+            logger.error("Invalid pagination parameters - page: {}, size: {}", page, size);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         Page<Order> orders = orderService.getOrders(page, size);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }

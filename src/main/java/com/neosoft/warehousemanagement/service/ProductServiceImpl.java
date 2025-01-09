@@ -11,7 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService{
@@ -91,5 +93,12 @@ public class ProductServiceImpl implements ProductService{
                 .sum();
         logger.info("Total stock value: {}", totalStockValue);
         return totalStockValue;
+    }
+
+    @Override
+    public List<Product> getLowStockProducts() {
+        return productRepository.findAll().stream()
+                .filter(product -> product.getCurrentStock() < 10)
+                .collect(Collectors.toList());
     }
 }
