@@ -5,6 +5,7 @@ import com.neosoft.warehousemanagement.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface OrderService {
@@ -13,4 +14,8 @@ public interface OrderService {
     Page<Order> getOrders(int page, int size);
 
     Optional<Order> getOrderById(Long id);
+
+    long getTotalOrders();
+
+    List<Order> getRecentOrders(int limit);
 }

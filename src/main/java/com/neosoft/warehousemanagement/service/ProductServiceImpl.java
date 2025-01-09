@@ -2,6 +2,7 @@ package com.neosoft.warehousemanagement.service;
 
 import com.neosoft.warehousemanagement.dto.ProductDto;
 import com.neosoft.warehousemanagement.entity.Product;
+import com.neosoft.warehousemanagement.exception.ProductAlreadyExistsException;
 import com.neosoft.warehousemanagement.repository.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,11 @@ public class ProductServiceImpl implements ProductService{
     @Override
     public ProductDto createProduct(ProductDto productDto) {
         logger.info("Creating a new product: {}", productDto);
+
+        Optional<Product> existingProduct = productRepository.findBySku(productDto.getSku());
+        if (existingProduct.isPresent()) {
+            throw new ProductAlreadyExistsException("Product with SKU " + productDto.getSku() + " already exists.");
+        }
 
         Product product=new Product();
         product.setId(productDto.getId());

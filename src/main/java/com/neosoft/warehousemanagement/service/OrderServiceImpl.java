@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -109,6 +110,16 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Optional<Order> getOrderById(Long id) {
         return orderRepository.findById(id);
+    }
+
+    @Override
+    public long getTotalOrders() {
+            return orderRepository.count();
+    }
+
+    @Override
+    public List<Order> getRecentOrders(int limit) {
+        return orderRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, limit)).getContent();
     }
 
     private BigDecimal calculateTotalAmount(OrderDto request) {

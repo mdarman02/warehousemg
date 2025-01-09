@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -33,6 +34,19 @@ public class OrderController {
         logger.info("Creating new order: {}",orderDto);
         Order createdOrder = orderService.createOrder(orderDto);
         return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
+    }
+
+
+    @GetMapping("/recent")
+    public List<Order> getRecentOrders(@RequestParam int limit) {
+        return orderService.getRecentOrders(limit);
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> getTotalOrders() {
+        logger.info("Fetching total number of products");
+        long totalProducts = orderService.getTotalOrders();
+        return ResponseEntity.ok(totalProducts);
     }
 
     // Get all orders with pagination
