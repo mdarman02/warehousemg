@@ -2,6 +2,7 @@ package com.neosoft.warehousemanagement.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -24,7 +25,8 @@ public class Order {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    @JsonIgnore
+//    @JsonIgnore
+    @JsonManagedReference
     private List<OrderItem> items;
 
 
@@ -75,5 +77,11 @@ public class Order {
 
     public void setItems(List<OrderItem> items) {
         this.items = items;
+    }
+
+
+    @JsonProperty("totalItems")
+    public int getTotalItems() {
+        return items != null ? items.stream().mapToInt(OrderItem::getQuantity).sum() : 0;
     }
 }

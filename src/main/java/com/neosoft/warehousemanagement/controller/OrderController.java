@@ -2,7 +2,10 @@ package com.neosoft.warehousemanagement.controller;
 
 import com.neosoft.warehousemanagement.dto.OrderDto;
 import com.neosoft.warehousemanagement.entity.Order;
+import com.neosoft.warehousemanagement.exception.ProductNotFoundException;
 import com.neosoft.warehousemanagement.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/orders")
+@Tag(name = "0rder APIs")
 @CrossOrigin(origins = "http://localhost:4200") // Enable CORS for this controller
 public class OrderController {
 
@@ -30,6 +34,7 @@ public class OrderController {
 
     // Create new order
     @PostMapping
+    @Operation(summary = "Add Order")
     public ResponseEntity<Order> createOrder(@RequestBody OrderDto orderDto) {
         logger.info("Creating new order: {}",orderDto);
         Order createdOrder = orderService.createOrder(orderDto);
@@ -37,12 +42,14 @@ public class OrderController {
     }
 
 
+    @Operation(summary = "Show recent order")
     @GetMapping("/recent")
     public List<Order> getRecentOrders(@RequestParam int limit) {
         return orderService.getRecentOrders(limit);
     }
 
     @GetMapping("/count")
+    @Operation(summary = "Total Order")
     public ResponseEntity<Long> getTotalOrders() {
         logger.info("Fetching total number of products");
         long totalProducts = orderService.getTotalOrders();
@@ -51,11 +58,13 @@ public class OrderController {
 
     // Get all orders with pagination
     @GetMapping
+    @Operation(summary = "Get all orders")
     public ResponseEntity<Page<Order>> getOrders(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         logger.info("Fetching order - page: {}, size: {}",page,size);
         if (page < 0 || size <= 0) {
             logger.error("Invalid pagination parameters - page: {}, size: {}", page, size);
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            throw  new ProductNotFoundException("Page Size is 0");
         }
         Page<Order> orders = orderService.getOrders(page, size);
         return new ResponseEntity<>(orders, HttpStatus.OK);
@@ -63,8 +72,11 @@ public class OrderController {
 
     // Get order by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Order>> getOrderById(@PathVariable Long id) {
-        Optional<Order> order = orderService.getOrderById(id);
-        return order != null ? new ResponseEntity<>(order, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @Operation(summary = "Get order by Id")
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+//        Optional<Order> order = orderService.getOrderById(id);
+//        return order != null ? new ResponseEntity<>(order, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+          Order order=orderService.getOrderById(id).orElseThrow(()->new ProductNotFoundException("Product not found with id: "+ id));
+          return ResponseEntity.ok(order);
     }
 }

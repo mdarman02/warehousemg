@@ -1,6 +1,7 @@
 package com.neosoft.warehousemanagement.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
@@ -21,7 +22,8 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
-    @JsonIgnore
+//    @JsonIgnore
+    @JsonBackReference
     private Product product;
 
     private Integer quantity;

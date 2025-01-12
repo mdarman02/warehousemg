@@ -2,8 +2,10 @@ package com.neosoft.warehousemanagement.service;
 
 import com.neosoft.warehousemanagement.dto.ProductDto;
 import com.neosoft.warehousemanagement.entity.Product;
+import com.neosoft.warehousemanagement.entity.StockMovement;
 import com.neosoft.warehousemanagement.exception.ProductAlreadyExistsException;
 import com.neosoft.warehousemanagement.repository.ProductRepository;
+import com.neosoft.warehousemanagement.repository.StockMovementRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,9 +25,11 @@ public class ProductServiceImpl implements ProductService{
     private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
 
     private ProductRepository productRepository;
+    private StockMovementRepository stockMovementRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, StockMovementRepository stockMovementRepository) {
         this.productRepository = productRepository;
+        this.stockMovementRepository = stockMovementRepository;
     }
 
     @Override
@@ -59,6 +64,8 @@ public class ProductServiceImpl implements ProductService{
         product.setDescription(productDto.getDescription());
 
         Product saveProduct= productRepository.save(product);
+
+
         ProductDto dto=new ProductDto();
         dto.setId(saveProduct.getId());
         dto.setDescription(saveProduct.getDescription());
@@ -70,10 +77,52 @@ public class ProductServiceImpl implements ProductService{
         return dto;
     }
 
+
+    @Override
+    public ProductDto createProductWithQuantity(ProductDto productDto, int quantity) {
+        logger.info("Creating a new product: {}", productDto);
+
+        Optional<Product> existingProduct = productRepository.findBySku(productDto.getSku());
+        if (existingProduct.isPresent()) {
+            throw new ProductAlreadyExistsException("Product with SKU " + productDto.getSku() + " already exists.");
+        }
+
+        Product product=new Product();
+        product.setId(productDto.getId());
+        product.setCategory(productDto.getCategory());
+        product.setName(productDto.getName());
+        product.setSku(productDto.getSku());
+        product.setPrice(productDto.getPrice());
+        product.setDescription(productDto.getDescription());
+
+        product.setCurrentStock(quantity);
+
+        Product saveProduct= productRepository.save(product);
+
+//        StockMovement stock =new StockMovement();
+//        stock.setProduct(saveProduct);
+//        stock.setQuantity(quantity);
+//        stockMovementRepository.save(stock);
+
+//        saveProduct.setCurrentStock(quantity);
+
+        ProductDto dto=new ProductDto();
+        dto.setId(saveProduct.getId());
+        dto.setDescription(saveProduct.getDescription());
+        dto.setName(saveProduct.getName());
+        dto.setSku(saveProduct.getSku());
+        dto.setPrice(saveProduct.getPrice());
+        dto.setCategory(saveProduct.getCategory());
+
+        return dto;
+    }
+
+
     @Override
     public Product updateProduct(Long id, Product product) {
         logger.info("Updating product with id: {}", id);
         product.setId(id);
+        product.setCreatedAt(LocalDateTime.now());
         return productRepository.save(product);
     }
 

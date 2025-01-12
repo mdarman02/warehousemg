@@ -15,6 +15,9 @@ public interface ProductService {
      Page<Product> getAllProducts(int page, int size);
      Optional<Product> getProductById(Long id);
      ProductDto createProduct(ProductDto productDto);
+
+     ProductDto createProductWithQuantity(ProductDto productDto, int quantity);
+
      Product updateProduct(Long id, Product product);
      void deleteProduct(Long id);
 

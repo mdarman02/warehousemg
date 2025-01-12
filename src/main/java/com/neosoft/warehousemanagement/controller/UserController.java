@@ -5,6 +5,7 @@ import com.neosoft.warehousemanagement.dto.TokenResponseDto;
 import com.neosoft.warehousemanagement.dto.UserDto;
 import com.neosoft.warehousemanagement.entity.UserEntity;
 import com.neosoft.warehousemanagement.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name="User APIs")
 @CrossOrigin(origins = "http://localhost:4200") // Enable CORS for this controller
 public class UserController {
 

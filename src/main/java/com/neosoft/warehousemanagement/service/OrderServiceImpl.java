@@ -48,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public Order createOrder(OrderDto request) {
-        // Step 1: Check stock availability
+        // Check stock availability
         for (OrderItemDtO item : request.getItems()) {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -57,9 +57,10 @@ public class OrderServiceImpl implements OrderService {
             if (product.getCurrentStock() < item.getQuantity()) {
                 throw new RuntimeException("Not enough stock for product: " + product.getName());
             }
+
         }
 
-        // Step 2: Create order
+        //  Create order
         Order order = new Order();
         order.setId(request.getId());
         order.setStatus("PENDING");
@@ -70,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
         // Save the order (but not the items yet)
         Order savedorder = orderRepository.save(order);
 
-        // Step 3: Save order items
+        //  Save order items
         for (OrderItemDtO item : request.getItems()) {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -91,13 +92,13 @@ public class OrderServiceImpl implements OrderService {
 
         }
 
-        // Step 4: Reduce the stock
+        //  Reduce the stock
         for (OrderItemDtO item : request.getItems()) {
             removeStock(item.getProductId(), item.getQuantity(), "SALE");
         }
 
 
-        // Step 5: Return the created order
+        //  Return the created order
         return savedorder;
     }
 
