@@ -4,6 +4,7 @@ import com.neosoft.warehousemanagement.dto.ProductDto;
 import com.neosoft.warehousemanagement.entity.Product;
 import com.neosoft.warehousemanagement.entity.StockMovement;
 //import com.neosoft.warehousemanagement.enumDto.Category;
+import com.neosoft.warehousemanagement.enumDto.Category;
 import com.neosoft.warehousemanagement.exception.ProductAlreadyExistsException;
 import com.neosoft.warehousemanagement.repository.ProductRepository;
 import com.neosoft.warehousemanagement.repository.StockMovementRepository;
@@ -74,8 +75,8 @@ public class ProductServiceImpl implements ProductService{
         dto.setName(saveProduct.getName());
         dto.setSku(saveProduct.getSku());
         dto.setPrice(saveProduct.getPrice());
-        dto.setCategory(saveProduct.getCategory());
-//        dto.setCategory(saveProduct.getCategory().name());  // Convert Enum to String
+//        dto.setCategory(saveProduct.getCategory());
+        dto.setCategory(saveProduct.getCategory().name());  // Convert Enum to String
 
         return dto;
     }
@@ -115,8 +116,8 @@ public class ProductServiceImpl implements ProductService{
         dto.setName(saveProduct.getName());
         dto.setSku(saveProduct.getSku());
         dto.setPrice(saveProduct.getPrice());
-        dto.setCategory(saveProduct.getCategory());
-//        dto.setCategory(saveProduct.getCategory().name());  // Convert Enum to String
+//        dto.setCategory(saveProduct.getCategory());
+        dto.setCategory(saveProduct.getCategory().name());  // Convert Enum to String
 
         return dto;
     }
