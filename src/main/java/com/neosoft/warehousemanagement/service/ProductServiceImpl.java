@@ -59,7 +59,7 @@ public class ProductServiceImpl implements ProductService{
 
         Product product=new Product();
         product.setId(productDto.getId());
-        product.setCategory(productDto.getCategory());
+        product.setCategory(productDto.getCategory().name());
 //        product.setCategory(Category.valueOf(productDto.getCategory()));
         product.setName(productDto.getName());
         product.setSku(productDto.getSku());
@@ -93,7 +93,7 @@ public class ProductServiceImpl implements ProductService{
 
         Product product=new Product();
         product.setId(productDto.getId());
-        product.setCategory(productDto.getCategory());
+        product.setCategory(productDto.getCategory().name());
         product.setName(productDto.getName());
         product.setSku(productDto.getSku());
         product.setPrice(productDto.getPrice());
