@@ -5,6 +5,7 @@ import com.neosoft.warehousemanagement.entity.Order;
 import com.neosoft.warehousemanagement.entity.OrderItem;
 import com.neosoft.warehousemanagement.entity.Product;
 import com.neosoft.warehousemanagement.entity.StockMovement;
+import com.neosoft.warehousemanagement.factory.OrderFactory;
 import com.neosoft.warehousemanagement.repository.OrderItemRepository;
 import com.neosoft.warehousemanagement.repository.OrderRepository;
 import com.neosoft.warehousemanagement.repository.ProductRepository;
@@ -61,7 +62,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         //  Create order
-        Order order = new Order();
+        Order order = OrderFactory.createOrder(request);
+//        Order order = new Order();
         order.setId(request.getId());
         order.setStatus("PENDING");
         order.setTotalAmount(calculateTotalAmount(request));  // Calculate the total amount
