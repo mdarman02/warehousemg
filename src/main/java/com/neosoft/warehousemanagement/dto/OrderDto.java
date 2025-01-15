@@ -19,6 +19,9 @@ public class OrderDto {
     }
 
     public BigDecimal getTotalAmount() {
+        if (totalAmount == null) {
+            return BigDecimal.ZERO;  // Return zero if totalAmount is null
+        }
         return totalAmount;
     }
 

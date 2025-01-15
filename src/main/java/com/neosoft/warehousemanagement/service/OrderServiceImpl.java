@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -70,29 +71,53 @@ public class OrderServiceImpl implements OrderService {
         order.setCreatedAt(LocalDateTime.now());
         order.setNotes(request.getNotes());
 
+//        order.setItems(request.getItems());
+
+
         // Save the order (but not the items yet)
         Order savedorder = orderRepository.save(order);
 
-        //  Save order items
-        for (OrderItemDtO item : request.getItems()) {
-            Product product = productRepository.findById(item.getProductId())
+//        //  Save order items
+//        for (OrderItemDtO item : request.getItems()) {
+//            Product product = productRepository.findById(item.getProductId())
+//                    .orElseThrow(() -> new RuntimeException("Product not found"));
+//
+//            Order order1 = orderRepository.findById(savedorder.getId())
+//                    .orElseThrow(() -> new RuntimeException("Order not found"));
+//
+//            // Create a new OrderItem entity and set its properties
+//            OrderItem orderItem = new OrderItem();
+//            orderItem.setId(item.getId());  // If the ID is already provided, you can set it
+//            orderItem.setOrder(order1);         // Set the Order entity
+//            orderItem.setProduct(product);     // Set the Product entity
+//            orderItem.setQuantity(item.getQuantity()); // Set quantity
+//            orderItem.setUnitPrice(item.getUnitPrice()); // Set unit price
+//
+//            // Save the OrderItem (assuming you have an orderItemRepository)
+//            orderItemRepository.save(orderItem);
+//
+//
+//        }
+        // Convert OrderItemDtO list to OrderItem entities
+        List<OrderItem> orderItems = request.getItems().stream().map(itemDto -> {
+            Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            Order order1 = orderRepository.findById(savedorder.getId())
-                    .orElseThrow(() -> new RuntimeException("Order not found"));
-
-            // Create a new OrderItem entity and set its properties
             OrderItem orderItem = new OrderItem();
-            orderItem.setId(item.getId());  // If the ID is already provided, you can set it
-            orderItem.setOrder(order1);         // Set the Order entity
-            orderItem.setProduct(product);     // Set the Product entity
-            orderItem.setQuantity(item.getQuantity()); // Set quantity
-            orderItem.setUnitPrice(item.getUnitPrice()); // Set unit price
+            orderItem.setOrder(savedorder);           // Set the order entity
+            orderItem.setProduct(product);           // Set the product entity
+            orderItem.setUnitPrice(product.getPrice());
+            orderItem.setQuantity(itemDto.getQuantity());  // Set quantity
+//            orderItem.setUnitPrice(itemDto.getUnitPrice());  // Set unit price
 
-            // Save the OrderItem (assuming you have an orderItemRepository)
-            orderItemRepository.save(orderItem);
+            return orderItem;
+        }).collect(Collectors.toList());
 
-        }
+        // Set the converted order items list on the order entity
+        savedorder.setItems(orderItems);
+
+        // Save the OrderItem entities
+        orderItemRepository.saveAll(orderItems);
 
         //  Reduce the stock
         for (OrderItemDtO item : request.getItems()) {
