@@ -10,6 +10,9 @@ import com.neosoft.warehousemanagement.repository.OrderItemRepository;
 import com.neosoft.warehousemanagement.repository.OrderRepository;
 import com.neosoft.warehousemanagement.repository.ProductRepository;
 import com.neosoft.warehousemanagement.repository.StockMovementRepository;
+import com.neosoft.warehousemanagement.strategy.BulkDiscountPricingStrategy;
+import com.neosoft.warehousemanagement.strategy.PricingStrategy;
+import com.neosoft.warehousemanagement.strategy.RegularPricingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -67,6 +70,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setId(request.getId());
         order.setStatus("SUCCESS");
+
         order.setTotalAmount(calculateTotalAmount(request));  // Calculate the total amount
         order.setCreatedAt(LocalDateTime.now());
         order.setNotes(request.getNotes());
@@ -80,11 +84,19 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = request.getItems().stream().map(itemDto -> {
             Product product = productRepository.findByIdForUpdate(itemDto.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found"));
+
+
+            // Decide the pricing strategy based on quantity or other factors
+            PricingStrategy pricingStrategy = getPricingStrategy(itemDto.getQuantity());
+
+            // Calculate the price using the selected pricing strategy
+            BigDecimal price = pricingStrategy.calculatePrice(product, itemDto.getQuantity());
 //
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(savedorder);           // Set the order entity
             orderItem.setProduct(product);           // Set the product entity
             orderItem.setUnitPrice(product.getPrice());
+//            orderItem.setUnitPrice(price);
             orderItem.setQuantity(itemDto.getQuantity());  // Set quantity
 
             return orderItem;
@@ -104,6 +116,15 @@ public class OrderServiceImpl implements OrderService {
 
         //  Return the created order
         return savedorder;
+    }
+
+    // Method to determine the appropriate pricing strategy based on order conditions
+    private PricingStrategy getPricingStrategy(int quantity) {
+        if (quantity > 10) {
+            return new BulkDiscountPricingStrategy();  // Use Bulk Discount for large quantities
+        } else {
+            return new RegularPricingStrategy();  // Use Regular Pricing for small quantities
+        }
     }
 
     @Override
